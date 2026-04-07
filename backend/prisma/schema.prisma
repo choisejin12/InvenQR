@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  role      Role      @default(USER)
+
+  inventoryLogs InventoryLog[]
+  requests       ProductRequest[] @relation("RequestedBy")
+  approvals      ProductRequest[] @relation("ApprovedBy")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  productCode String   @unique
+  name        String
+  description String?
+  quantity    Int      @default(0)
+
+  categoryId  Int?
+  category    Category? @relation(fields: [categoryId], references: [id])
+
+  locationId  Int?
+  location    Location? @relation(fields: [locationId], references: [id])
+
+  qrCode      String?  @unique
+  imageUrl    String?
+
+  inventoryLogs InventoryLog[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+model InventoryLog {
+  id         Int      @id @default(autoincrement())
+
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+
+  locationId Int
+  location   Location @relation(fields: [locationId], references: [id])
+
+  type       InventoryType
+  quantity   Int
+  note       String?
+
+  createdAt  DateTime @default(now())
+}
+
+enum InventoryType {
+  IN
+  OUT
+}
+
+model ProductRequest {
+  id           Int      @id @default(autoincrement())
+
+  name         String
+  description  String?
+  quantity     Int      @default(0)
+  location     String?
+  imageUrl     String?
+
+  requestedById Int
+  requestedBy   User     @relation("RequestedBy", fields: [requestedById], references: [id])
+
+  approvedById  Int?
+  approvedBy    User?    @relation("ApprovedBy", fields: [approvedById], references: [id])
+
+  status       RequestStatus @default(PENDING)
+  rejectReason String?
+
+  approvedAt   DateTime?
+  createdAt    DateTime @default(now())
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+
+  products  Product[]
+
+  createdAt DateTime @default(now())
+}
+
+model Warehouse {
+  id        Int      @id @default(autoincrement())
+  name      String
+  code      String   @unique
+
+  locations Location[]
+
+  createdAt DateTime @default(now())
+}
+
+model Location {
+  id          Int      @id @default(autoincrement())
+  code        String
+
+  warehouseId Int
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+
+  products     Product[]
+  inventoryLogs InventoryLog[]
+
+  createdAt   DateTime @default(now())
+
+  @@unique([warehouseId, code]) 
+}
