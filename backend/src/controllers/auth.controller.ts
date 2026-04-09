@@ -6,13 +6,14 @@ import jwt from 'jsonwebtoken';
 // 회원가입
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body as {
+    const { email, password , name} = req.body as {
       email: string;
       password: string;
+      name : string;
     };
 
     // 1. 유효성 체크
-    if (!email || !password) {
+    if (!email || !password || !name ) {
       return res.status(400).json({ message: '값을 입력해주세요.' });
     }
 
@@ -33,6 +34,7 @@ export const register = async (req: Request, res: Response) => {
       data: {
         email,
         password: hashedPassword,
+        name,
       },
     });
 
@@ -42,6 +44,7 @@ export const register = async (req: Request, res: Response) => {
         id: user.id,
         email: user.email,
         role: user.role,
+        name: user.name,
       },
     });
   } catch (err: any) {
@@ -83,11 +86,12 @@ export const login = async (req: Request, res: Response) => {
     res.json({
       message: '로그인에 성공하였습니다.',
       accessToken: token,
-      user: {
+      userData:{
         id: user.id,
         email: user.email,
         role: user.role,
-      },
+        name: user.name,
+      }
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });

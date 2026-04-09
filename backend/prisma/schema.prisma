@@ -10,12 +10,15 @@ datasource db {
 model User {
   id        Int       @id @default(autoincrement())
   email     String    @unique
+  name      String
   password  String
   role      Role      @default(USER)
 
   inventoryLogs InventoryLog[]
   requests       ProductRequest[] @relation("RequestedBy")
   approvals      ProductRequest[] @relation("ApprovedBy")
+  createdProducts Product[]       @relation("CreatedProducts")
+  downloadLogs DownloadLog[]
 }
 
 enum Role {
@@ -38,6 +41,9 @@ model Product {
 
   qrCode      String?  @unique
   imageUrl    String?
+
+  createdById Int?
+  createdBy   User?    @relation("CreatedProducts", fields: [createdById], references: [id])
 
   inventoryLogs InventoryLog[]
 
@@ -62,6 +68,8 @@ model InventoryLog {
   quantity   Int
   note       String?
 
+
+  processedAt DateTime?
   createdAt  DateTime @default(now())
 }
 
@@ -73,10 +81,19 @@ enum InventoryType {
 model ProductRequest {
   id           Int      @id @default(autoincrement())
 
+  productCode  String
   name         String
   description  String?
-  quantity     Int      @default(0)
-  location     String?
+  quantity     Int
+
+  categoryId   Int
+  category     Category @relation(fields: [categoryId], references: [id])
+
+  warehouseId  Int
+  warehouse    Warehouse @relation(fields: [warehouseId], references: [id])
+
+  locationCode String
+
   imageUrl     String?
 
   requestedById Int
@@ -105,6 +122,7 @@ model Category {
   products  Product[]
 
   createdAt DateTime @default(now())
+  productRequests ProductRequest[]
 }
 
 model Warehouse {
@@ -115,6 +133,8 @@ model Warehouse {
   locations Location[]
 
   createdAt DateTime @default(now())
+
+  productRequests ProductRequest[] 
 }
 
 model Location {
@@ -130,4 +150,21 @@ model Location {
   createdAt   DateTime @default(now())
 
   @@unique([warehouseId, code]) 
+}
+
+model DownloadLog {
+  id        Int      @id @default(autoincrement())
+
+  type      DownloadType   // PRODUCTS / INVENTORY
+  fileName  String
+  fileSize  Int            // byte 단위
+  userId    Int
+  user      User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+enum DownloadType {
+  PRODUCTS
+  INVENTORY
 }

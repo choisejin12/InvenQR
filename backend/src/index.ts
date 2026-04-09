@@ -4,6 +4,11 @@ import cors from 'cors';
 
 import authRoutes from './routes/auth.routes';
 import dashboardRouter from './routes/dashboard.route';
+import DownloadRouter from './routes/download.route';
+import InventoryRouter from './routes/inventory.routes';
+import ProductRouter from './routes/product.routes';
+import RequestProductRouter from './routes/productRequest.routes';
+import WareHouseRouter from './routes/warehouse.controller';
 
 dotenv.config();
 
@@ -14,15 +19,14 @@ app.use(cors());
 app.use(express.json());
 
 
-// 테스트 라우트
-/*app.get('/', (req: Request, res: Response) => {
-  res.send('서버 실행됨');
-});*/
-
 // Auth 라우터
-app.use('/auth', authRoutes);
-app.use('/', dashboardRouter);
-
+app.use('/user', authRoutes);
+app.use('/dashboard', dashboardRouter);
+app.use('/download',DownloadRouter );
+app.use('/inventory',InventoryRouter );
+app.use('/product',ProductRouter );
+app.use('/requestproduct',RequestProductRouter );
+app.use('/warehouse',WareHouseRouter );
 
 
 const PORT = 5000;
