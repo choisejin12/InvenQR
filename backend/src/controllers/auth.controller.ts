@@ -86,7 +86,7 @@ export const login = async (req: Request, res: Response) => {
     res.json({
       message: '로그인에 성공하였습니다.',
       accessToken: token,
-      userData:{
+      user:{
         id: user.id,
         email: user.email,
         role: user.role,

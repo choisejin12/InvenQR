@@ -1,12 +1,11 @@
-import { PrismaClient, RequestStatus, InventoryType } from '@prisma/client';
-import { CreateProductRequestDTO } from '../types/productRequest.types'
+import { InventoryType, RequestStatus } from '@prisma/client';
+import prisma from '../config/prisma';
+import { CreateProductRequestDTO } from '../types/productRequest.types';
 
-const prisma = new PrismaClient();
-
-/*요청 생성*/
+/* 상품 등록 요청 생성 */
 export const createProductRequest = async (
   userId: number,
-  data: CreateProductRequestDTO
+  data: CreateProductRequestDTO,
 ) => {
   if (!data.name || !data.categoryId || !data.warehouseId) {
     throw new Error('필수 값이 누락되었습니다.');
@@ -16,12 +15,11 @@ export const createProductRequest = async (
     throw new Error('위치를 입력해주세요.');
   }
 
-  // locationCode 정리 (공백 제거)
   const locationCode = data.locationCode.trim();
 
   return prisma.productRequest.create({
     data: {
-      productCode:data.productCode ?? `PR-${Date.now()}`,
+      productCode: data.productCode ?? `PR-${Date.now()}`,
       name: data.name,
       description: data.description,
       quantity: data.quantity,
@@ -34,43 +32,51 @@ export const createProductRequest = async (
   });
 };
 
-
 const buildRequestWhere = ({
   status,
   userId,
 }: {
   status?: 'PENDING' | 'APPROVED' | 'REJECTED';
   userId?: number;
-}) => {
-  return {
-    ...(status ? { status: status as RequestStatus } : {}),
-    ...(userId ? { requestedById: userId } : {}),
-  };
-};
-
-const mapRequest = (req: any) => ({
-  id: req.id,
-  productCode: req.productCode,
-  name: req.name,
-  quantity: req.quantity,
-  status: req.status,
-
-  requestedBy: req.requestedBy.email,
-  approvedBy: req.approvedBy?.email ?? null,
-
-  createdAt: req.createdAt,
-  approvedAt: req.approvedAt,
-  rejectReason: req.rejectReason,
-
-  locationName: req.location
-    ? `${req.location.warehouse.name}${req.location.code}`
-    : null,
-
-  categoryName: req.category?.name ?? null,
+}) => ({
+  ...(status ? { status: status as RequestStatus } : {}),
+  ...(userId ? { requestedById: userId } : {}),
 });
 
+const mapRequest = (request: any) => ({
+  id: request.id,
+  productCode: request.productCode,
+  name: request.name,
+  description: request.description,
+  quantity: request.quantity,
+  status: request.status,
+  imageUrl: request.imageUrl ?? null,
 
-/*전체 요청 리스트 조회*/
+  categoryId: request.categoryId,
+  categoryName: request.category?.name ?? null,
+
+  warehouseId: request.warehouseId,
+  warehouseName: request.warehouse?.name ?? null,
+  warehouseCode: request.warehouse?.code ?? null,
+  locationCode: request.locationCode,
+  locationName: request.warehouse
+    ? `${request.warehouse.name} - ${request.locationCode}`
+    : request.locationCode,
+
+  requestedById: request.requestedById,
+  requestedByName: request.requestedBy?.name ?? request.requestedBy?.email ?? null,
+  requestedByEmail: request.requestedBy?.email ?? null,
+
+  approvedById: request.approvedById,
+  approvedByName: request.approvedBy?.name ?? request.approvedBy?.email ?? null,
+  approvedByEmail: request.approvedBy?.email ?? null,
+
+  createdAt: request.createdAt,
+  approvedAt: request.approvedAt,
+  rejectReason: request.rejectReason,
+});
+
+/* 관리자용 전체 요청 목록 조회 */
 export const getProductRequests = async ({
   status,
   page = 1,
@@ -81,7 +87,6 @@ export const getProductRequests = async ({
   limit?: number;
 }) => {
   const skip = (page - 1) * limit;
-
   const where = buildRequestWhere({ status });
 
   const total = await prisma.productRequest.count({ where });
@@ -90,17 +95,13 @@ export const getProductRequests = async ({
     where,
     include: {
       requestedBy: {
-        select: { id: true, email: true },
+        select: { id: true, email: true, name: true },
       },
       approvedBy: {
-        select: { id: true, email: true },
+        select: { id: true, email: true, name: true },
       },
       category: true,
-      location: {
-        include: {
-          warehouse: true,
-        },
-      },
+      warehouse: true,
     },
     orderBy: { createdAt: 'desc' },
     skip,
@@ -118,7 +119,7 @@ export const getProductRequests = async ({
   };
 };
 
-/*나의 요청 조회*/
+/* 요청자 본인의 요청 목록 조회 */
 export const getMyProductRequests = async (
   userId: number,
   {
@@ -129,32 +130,24 @@ export const getMyProductRequests = async (
     status?: 'PENDING' | 'APPROVED' | 'REJECTED';
     page?: number;
     limit?: number;
-  }
+  },
 ) => {
   const skip = (page - 1) * limit;
-
-  const where = buildRequestWhere({
-    status,
-    userId,
-  });
+  const where = buildRequestWhere({ status, userId });
 
   const total = await prisma.productRequest.count({ where });
-
+  
   const requests = await prisma.productRequest.findMany({
     where,
     include: {
       requestedBy: {
-        select: { id: true, email: true },
+        select: { id: true, email: true, name: true },
       },
       approvedBy: {
-        select: { id: true, email: true },
+        select: { id: true, email: true, name: true },
       },
       category: true,
-      location: {
-        include: {
-          warehouse: true,
-        },
-      },
+      warehouse: true,
     },
     orderBy: { createdAt: 'desc' },
     skip,
@@ -172,24 +165,24 @@ export const getMyProductRequests = async (
   };
 };
 
-/*요청 승인*/
+/* 관리자 승인 시 요청 데이터를 Product 테이블로 옮깁니다. */
 export const approveProductRequest = async (
   requestId: number,
-  adminId: number
+  adminId: number,
 ) => {
   return prisma.$transaction(async (tx) => {
-    // 1. 요청 가져오기
     const request = await tx.productRequest.findUnique({
       where: { id: requestId },
     });
 
-    if (!request) throw new Error('요청 없음');
-
-    if (request.status !== RequestStatus.PENDING) {
-      throw new Error('이미 처리된 요청');
+    if (!request) {
+      throw new Error('요청을 찾을 수 없습니다.');
     }
 
-    // location 생성 또는 조회
+    if (request.status !== RequestStatus.PENDING) {
+      throw new Error('이미 처리된 요청입니다.');
+    }
+
     const location = await tx.location.upsert({
       where: {
         warehouseId_code: {
@@ -205,27 +198,28 @@ export const approveProductRequest = async (
     });
 
 
-    // 2. Product 생성
     const product = await tx.product.create({
       data: {
-        productCode: `P-${Date.now()}`, // 간단 생성 (추후 개선 가능)
+        productCode: request.productCode,
         name: request.name,
         description: request.description,
         quantity: request.quantity,
         categoryId: request.categoryId,
         locationId: location.id,
-        qrCode: `QR-${Date.now()}`, // QR 코드 값
+        warehouseId: request.warehouseId,     ///수정한부분
+        qrCode: `QR-${Date.now()}`,
         imageUrl: request.imageUrl,
+        createdById: adminId,
       },
     });
 
-    // 3. InventoryLog 생성 (초기 입고)
     if (request.quantity > 0) {
       await tx.inventoryLog.create({
         data: {
           productId: product.id,
-          userId: adminId,
+          userId: request.requestedById,
           locationId: location.id,
+          warehouseId: request.warehouseId,  ///수정한부분
           type: InventoryType.IN,
           quantity: request.quantity,
           note: '초기 입고',
@@ -233,33 +227,75 @@ export const approveProductRequest = async (
       });
     }
 
-    // 4. 요청 상태 업데이트
-    const updated = await tx.productRequest.update({
+    const updatedRequest = await tx.productRequest.update({
       where: { id: requestId },
       data: {
         status: RequestStatus.APPROVED,
         approvedById: adminId,
         approvedAt: new Date(),
       },
+      include: {
+        requestedBy: {
+          select: { id: true, email: true, name: true },
+        },
+        approvedBy: {
+          select: { id: true, email: true, name: true },
+        },
+        category: true,
+        warehouse: true,
+      },
     });
 
-    return { request: updated, product };
+    return {
+      request: mapRequest(updatedRequest),
+      product,
+    };
   });
 };
 
-/*요청 거절*/
+/* 관리자 거절 시 거절 사유를 함께 저장합니다. */
 export const rejectProductRequest = async (
   requestId: number,
   adminId: number,
-  reason: string
+  reason: string,
 ) => {
-  return prisma.productRequest.update({
+  const trimmedReason = reason?.trim();
+
+  if (!trimmedReason) {
+    throw new Error('거절 사유를 입력해주세요.');
+  }
+
+  const request = await prisma.productRequest.findUnique({
+    where: { id: requestId },
+  });
+
+  if (!request) {
+    throw new Error('요청을 찾을 수 없습니다.');
+  }
+
+  if (request.status !== RequestStatus.PENDING) {
+    throw new Error('이미 처리된 요청입니다.');
+  }
+
+  const updatedRequest = await prisma.productRequest.update({
     where: { id: requestId },
     data: {
       status: RequestStatus.REJECTED,
       approvedById: adminId,
-      rejectReason: reason,
+      rejectReason: trimmedReason,
       approvedAt: new Date(),
     },
+    include: {
+      requestedBy: {
+        select: { id: true, email: true, name: true },
+      },
+      approvedBy: {
+        select: { id: true, email: true, name: true },
+      },
+      category: true,
+      warehouse: true,
+    },
   });
+
+  return mapRequest(updatedRequest);
 };

@@ -1,15 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
-import type {PayloadAction} from '@reduxjs/toolkit';
-
-type User = {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-};
+import type { PayloadAction } from '@reduxjs/toolkit';
+import type { AuthUser } from '../types/auth.type';
 
 type UserState = {
-  userData: User | null;
+  userData: AuthUser | null;
   isAuth: boolean;
 };
 
@@ -22,13 +16,14 @@ const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<User>) => {
+    setUser: (state, action: PayloadAction<AuthUser>) => {
       state.userData = action.payload;
       state.isAuth = true;
     },
     logout: (state) => {
       state.userData = null;
       state.isAuth = false;
+      localStorage.removeItem('accessToken');
     },
   },
 });

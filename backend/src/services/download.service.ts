@@ -1,8 +1,7 @@
-import { PrismaClient, DownloadLog, User } from '@prisma/client';
+import { DownloadLog, User } from '@prisma/client';
 import { Parser } from 'json2csv';
 import { DownloadType } from '../types/download.type';
-
-const prisma = new PrismaClient();
+import prisma from '../config/prisma';
 
 export const generateProductsCSV = async (userId: number) => {
   const products = await prisma.product.findMany({

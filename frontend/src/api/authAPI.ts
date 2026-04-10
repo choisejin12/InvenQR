@@ -1,27 +1,24 @@
 import axios from './axios';
-import type { LoginRequest } from '../types/auth.type';
-import type { RegisterRequest } from '../types/auth.type';
-
+import type { AuthUser, LoginRequest, LoginResponse, RegisterRequest } from '../types/auth.type';
 
 export const registerAPI = async (data: RegisterRequest) => {
-  const res = await axios.post('/user/register', data);
-  return res.data;
+  const response = await axios.post('/user/register', data);
+  return response.data;
 };
 
+export const loginAPI = async (data: LoginRequest): Promise<AuthUser> => {
+  const response = await axios.post<LoginResponse>('/user/login', data);
 
-export const loginAPI = async (data: LoginRequest) => {
-  const res = await axios.post('/user/login', data);
+  localStorage.setItem('accessToken', response.data.accessToken);
 
-  // accessToken 저장
-  localStorage.setItem('accessToken', res.data.accessToken);
-  return res.data;
+  return response.data.user;
 };
 
-export const authUserAPI = async () => {
+export const authUserAPI = async (): Promise<AuthUser | null> => {
   try {
-    const res = await axios.get('/user/auth');
-    return res.data; 
-  } catch (err) {
-    return null; 
+    const response = await axios.get<AuthUser>('/user/auth');
+    return response.data;
+  } catch {
+    return null;
   }
 };

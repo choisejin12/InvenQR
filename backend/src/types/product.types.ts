@@ -20,7 +20,7 @@ export type UpdateProductDTO = {
 export type ProductFilterDTO = {
   search?: string;
   categoryId?: number;
-  locationId?: number;
+  warehouseId?: number;
   minQty?: number;
   maxQty?: number;
   createdById?:number;

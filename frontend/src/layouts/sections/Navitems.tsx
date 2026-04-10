@@ -77,7 +77,7 @@ function Nav({ open, setOpen }: Props) {
         className={`
         fixed md:static  md:top-0 left-0 h-[calc(100%-56px)] md:h-full w-64 bg-[#2f3e4d]
         transform transition-transform duration-300
-        ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
+        ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 z-70
       `}
       >
         {/* 메뉴 */}

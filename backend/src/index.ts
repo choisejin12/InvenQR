@@ -9,6 +9,7 @@ import InventoryRouter from './routes/inventory.routes';
 import ProductRouter from './routes/product.routes';
 import RequestProductRouter from './routes/productRequest.routes';
 import WareHouseRouter from './routes/warehouse.controller';
+import CategoryRouter from './routes/category.routes';
 
 dotenv.config();
 
@@ -16,7 +17,8 @@ const app = express();
 
 // 미들웨어 설정
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 
 // Auth 라우터
@@ -27,6 +29,7 @@ app.use('/inventory',InventoryRouter );
 app.use('/product',ProductRouter );
 app.use('/requestproduct',RequestProductRouter );
 app.use('/warehouse',WareHouseRouter );
+app.use('/category', CategoryRouter);
 
 
 const PORT = 5000;

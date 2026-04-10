@@ -1,7 +1,6 @@
-import { PrismaClient, InventoryType } from '@prisma/client';
-import {InventoryLogFilterDTO,StockInDTO,StockOutDTO} from '../types/inventory.types'
-
-const prisma = new PrismaClient();
+import { InventoryType } from '@prisma/client';
+import { InventoryLogFilterDTO, StockInDTO, StockOutDTO } from '../types/inventory.types';
+import prisma from '../config/prisma';
 
 const formatLocation = (location: any) => {
   if (!location) return null;
@@ -17,36 +16,51 @@ const buildDateFilter = (startDate?: string, endDate?: string) => {
   };
 };
 
-/*입고*/
-export const stockIn = async (
-  userId: number,
-  data: StockInDTO
-) => {
-  return prisma.$transaction(async (tx) => { //transaction 사용 👉 재고 + 로그 하나라도 실패하면 전체 롤백 👉 데이터 꼬임 방지 (핵심)
-    // 1️⃣ 상품 조회
+/* 입고 */
+export const stockIn = async (userId: number, data: StockInDTO) => {
+  return prisma.$transaction(async (tx) => {
+    // 1. 입고할 상품이 실제로 존재하는지 먼저 확인합니다.
     const product = await tx.product.findUnique({
       where: { id: data.productId },
     });
 
-    if (!product) throw new Error('상품이 존재하지않습니다.');
+    if (!product) {
+      throw new Error('상품이 존재하지 않습니다.');
+    }
 
-    // 2️⃣ 재고 증가
+    // 2. 선택한 위치의 창고 정보를 같이 읽어와서
+    // Product와 InventoryLog에 같은 warehouseId를 저장합니다.
+    const location = await tx.location.findUnique({
+      where: { id: data.locationId },
+      select: {
+        id: true,
+        warehouseId: true,
+      },
+    });
+
+    if (!location) {
+      throw new Error('선택한 위치를 찾을 수 없습니다.');
+    }
+
+    // 3. 상품 수량과 위치, 창고 정보를 함께 갱신합니다.
     const updatedProduct = await tx.product.update({
       where: { id: data.productId },
       data: {
         quantity: {
-          increment: data.quantity, // 동시성 문제 최소화
+          increment: data.quantity,
         },
-        locationId: data.locationId,
+        locationId: location.id,
+        warehouseId: location.warehouseId,
       },
     });
 
-    // 3️⃣ 로그 생성
+    // 4. 입고 로그에도 같은 위치/창고 정보를 남깁니다.
     await tx.inventoryLog.create({
       data: {
         productId: data.productId,
         userId,
-        locationId: data.locationId,
+        locationId: location.id,
+        warehouseId: location.warehouseId,
         type: InventoryType.IN,
         quantity: data.quantity,
         note: data.note,
@@ -58,41 +72,55 @@ export const stockIn = async (
   });
 };
 
-/* 출고*/
-export const stockOut = async (
-  userId: number,
-  data: StockOutDTO
-) => {
+/* 출고 */
+export const stockOut = async (userId: number, data: StockOutDTO) => {
   return prisma.$transaction(async (tx) => {
-    // 1️⃣ 상품 조회
+    // 1. 출고할 상품을 확인합니다.
     const product = await tx.product.findUnique({
       where: { id: data.productId },
     });
 
-    if (!product) throw new Error('상품 없음');
-
-    // 재고 부족 체크 
-    if (product.quantity < data.quantity) {
-      throw new Error('재고 부족');
+    if (!product) {
+      throw new Error('상품이 존재하지 않습니다.');
     }
 
-    // 2️⃣ 재고 감소
+    // 2. 현재 재고보다 더 많이 출고할 수는 없습니다.
+    if (product.quantity < data.quantity) {
+      throw new Error('재고가 부족합니다.');
+    }
+
+    // 3. 출고 위치에 연결된 창고 ID를 확인합니다.
+    const location = await tx.location.findUnique({
+      where: { id: data.locationId },
+      select: {
+        id: true,
+        warehouseId: true,
+      },
+    });
+
+    if (!location) {
+      throw new Error('선택한 위치를 찾을 수 없습니다.');
+    }
+
+    // 4. 상품의 최신 위치/창고와 재고 수량을 함께 갱신합니다.
     const updatedProduct = await tx.product.update({
       where: { id: data.productId },
       data: {
         quantity: {
-          decrement: data.quantity, // 동시성 문제 최소화
+          decrement: data.quantity,
         },
-        locationId: data.locationId,
+        locationId: location.id,
+        warehouseId: location.warehouseId,
       },
     });
 
-    // 3️⃣ 로그 생성
+    // 5. 출고 로그에도 동일한 창고 정보를 저장합니다.
     await tx.inventoryLog.create({
       data: {
         productId: data.productId,
         userId,
-        locationId: data.locationId,
+        locationId: location.id,
+        warehouseId: location.warehouseId,
         type: InventoryType.OUT,
         quantity: data.quantity,
         note: data.note,
@@ -104,7 +132,7 @@ export const stockOut = async (
   });
 };
 
-/*전체 입출고 기록 조회*/
+/* 전체 입출고 기록 조회 */
 export const getInventoryLogs = async (filters: InventoryLogFilterDTO) => {
   const {
     productId,
@@ -123,7 +151,7 @@ export const getInventoryLogs = async (filters: InventoryLogFilterDTO) => {
     AND: [
       productId ? { productId } : {},
       categoryId ? { product: { categoryId } } : {},
-      warehouseId ? { location: { warehouseId } } : {},
+      warehouseId ? { warehouseId } : {},
       type ? { type: type as InventoryType } : {},
       buildDateFilter(startDate, endDate)
         ? { createdAt: buildDateFilter(startDate, endDate) }
@@ -147,7 +175,7 @@ export const getInventoryLogs = async (filters: InventoryLogFilterDTO) => {
       user: {
         select: {
           id: true,
-          name:true,
+          name: true,
           email: true,
         },
       },
@@ -185,10 +213,10 @@ export const getInventoryLogs = async (filters: InventoryLogFilterDTO) => {
   };
 };
 
-/*특정 상품 입출고 기록 조회*/
+/* 특정 상품 입출고 기록 조회 */
 export const getProductInventoryLogs = async (
   productId: number,
-  filters: InventoryLogFilterDTO
+  filters: InventoryLogFilterDTO,
 ) => {
   return getInventoryLogs({
     ...filters,

@@ -3,7 +3,8 @@ import * as service from '../services/product.service';
 
 export const create = async (req: Request, res: Response) => {
   try {
-    const result = await service.createProduct(req.body);
+    const userId = (req as any).user?.id;
+    const result = await service.createProduct(req.body, userId);
     res.json(result);
   } catch (err: any) {
     res.status(500).json({ message: err.message });
@@ -17,8 +18,8 @@ export const getAll = async (req: Request, res: Response) => {
       categoryId: req.query.categoryId
         ? Number(req.query.categoryId)
         : undefined,
-      locationId: req.query.locationId
-        ? Number(req.query.locationId)
+      warehouseId: req.query.warehouseId
+        ? Number(req.query.warehouseId)
         : undefined,
       minQty: req.query.minQty
         ? Number(req.query.minQty)
@@ -31,6 +32,8 @@ export const getAll = async (req: Request, res: Response) => {
       page: req.query.page ? Number(req.query.page) : 1,
       limit: req.query.limit ? Number(req.query.limit) : 10,
     });
+
+    
 
     res.json(data);
   } catch (err: any) {

@@ -36,11 +36,14 @@ model Product {
   categoryId  Int?
   category    Category? @relation(fields: [categoryId], references: [id])
 
+  warehouseId Int?
+  warehouse   Warehouse? @relation("WarehouseProducts", fields: [warehouseId], references: [id])
+
   locationId  Int?
   location    Location? @relation(fields: [locationId], references: [id])
 
   qrCode      String?  @unique
-  imageUrl    String?
+  imageUrl    String?  @db.LongText
 
   createdById Int?
   createdBy   User?    @relation("CreatedProducts", fields: [createdById], references: [id])
@@ -60,6 +63,9 @@ model InventoryLog {
 
   userId     Int
   user       User     @relation(fields: [userId], references: [id])
+
+  warehouseId Int?
+  warehouse   Warehouse? @relation("WarehouseInventoryLogs", fields: [warehouseId], references: [id])
 
   locationId Int
   location   Location @relation(fields: [locationId], references: [id])
@@ -94,7 +100,7 @@ model ProductRequest {
 
   locationCode String
 
-  imageUrl     String?
+  imageUrl     String? @db.LongText
 
   requestedById Int
   requestedBy   User     @relation("RequestedBy", fields: [requestedById], references: [id])
@@ -131,6 +137,8 @@ model Warehouse {
   code      String   @unique
 
   locations Location[]
+  products Product[] @relation("WarehouseProducts")
+  inventoryLogs InventoryLog[] @relation("WarehouseInventoryLogs")
 
   createdAt DateTime @default(now())
 

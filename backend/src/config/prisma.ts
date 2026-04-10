@@ -1,14 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 
-const globalForPrisma = global as unknown as {
-  prisma: PrismaClient;
+const globalForPrisma = global as typeof global & {
+  prisma?: PrismaClient;
 };
 
-const prisma =
-  globalForPrisma.prisma ||
-  new PrismaClient({
-    log: ['query'], // 선택 (쿼리 로그 확인)
-  });
+// PrismaClient를 서비스마다 새로 만들지 않고 공용으로 재사용합니다.
+const prisma = globalForPrisma.prisma ?? new PrismaClient();
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;

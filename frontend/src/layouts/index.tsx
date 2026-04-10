@@ -16,7 +16,7 @@ function MainLayout() {
       <Header onMenuClick={() => setOpen((prev) => !prev)} />
 
       {/* 🔵 아래 영역 (Nav + Content) */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden z-60">
         
         {/* 사이드바 */}
         <Nav open={open} setOpen={setOpen} />

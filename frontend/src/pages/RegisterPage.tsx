@@ -42,13 +42,8 @@ export default function RegisterPage() {
   const watchedPassword  = watch("password");
 
 
-  const onSubmit = ({ email, password, name }: RegisterRequest) => { 
-    const body = {
-      email,
-      password,
-      name
-    }
-    mutate(body, {
+  const onSubmit = (formValues: RegisterRequest) => { 
+    mutate(formValues, {
       onSuccess: () => {
         toast("InvenQR 멤버가 되신 걸 환영합니다 !");
         navigate('/login');

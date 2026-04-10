@@ -1,8 +1,7 @@
-import { PrismaClient } from '@prisma/client';
-import {CreateWarehouseDTO,UpdateWarehouseDTO} from '../types/warehouse.types'
-const prisma = new PrismaClient();
+import prisma from '../config/prisma';
+import { CreateWarehouseDTO, UpdateWarehouseDTO } from '../types/warehouse.types';
 
-/*창고 목록 조회 (Admin)*/
+/* 창고 목록 조회 */
 export const getWarehouses = async () => {
   const warehouses = await prisma.warehouse.findMany({
     include: {
@@ -15,30 +14,24 @@ export const getWarehouses = async () => {
     orderBy: { createdAt: 'desc' },
   });
 
-  return warehouses.map((w) => {
-    // 전체 상품 수 계산
-    const totalProducts = w.locations.reduce(
-      (sum, loc) => sum + loc.products.length,
-      0
+  return warehouses.map((warehouse) => {
+    const totalProducts = warehouse.locations.reduce(
+      (sum, location) => sum + location.products.length,
+      0,
     );
 
     return {
-      id: w.id,
-      name: w.name,
-      code: w.code,
-
-      // 위치 리스트
-      locations: w.locations.map((loc) => ({
-        id: loc.id,
-        code: loc.code,
+      id: warehouse.id,
+      name: warehouse.name,
+      code: warehouse.code,
+      locations: warehouse.locations.map((location) => ({
+        id: location.id,
+        code: location.code,
       })),
-
-      // 현재 보유 상품 수
       totalProducts,
     };
   });
 };
-
 
 export const createWarehouse = async (data: CreateWarehouseDTO) => {
   return prisma.warehouse.create({
@@ -46,10 +39,7 @@ export const createWarehouse = async (data: CreateWarehouseDTO) => {
   });
 };
 
-export const updateWarehouse = async (
-  id: number,
-  data: UpdateWarehouseDTO
-) => {
+export const updateWarehouse = async (id: number, data: UpdateWarehouseDTO) => {
   return prisma.warehouse.update({
     where: { id },
     data,
@@ -57,7 +47,6 @@ export const updateWarehouse = async (
 };
 
 export const deleteWarehouse = async (id: number) => {
-  // product 존재 여부 체크 
   const productExist = await prisma.product.findFirst({
     where: {
       location: {
@@ -70,7 +59,16 @@ export const deleteWarehouse = async (id: number) => {
     throw new Error('상품이 존재하는 창고는 삭제할 수 없습니다.');
   }
 
-  // location은 자동 생성 구조라 삭제 가능
+  const productRequestExist = await prisma.productRequest.findFirst({
+    where: {
+      warehouseId: id,
+    },
+  });
+
+  if (productRequestExist) {
+    throw new Error('이 창고를 참조하는 상품 등록 요청이 있어 삭제할 수 없습니다.');
+  }
+
   await prisma.location.deleteMany({
     where: { warehouseId: id },
   });

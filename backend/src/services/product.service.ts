@@ -1,29 +1,38 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import prisma from '../config/prisma';
 import {
   CreateProductDTO,
-  UpdateProductDTO,
   ProductFilterDTO,
+  UpdateProductDTO,
 } from '../types/product.types';
-import { Prisma } from '@prisma/client';
 
-const prisma = new PrismaClient();
-
-/* location 문자열 가공 함수*/
 const formatLocation = (location: any) => {
-  if (!location) return null;
+  if (!location) {
+    return null;
+  }
+
   return `${location.warehouse.name}${location.code}`;
 };
 
-const getLastLog = (logs: any[], type: 'IN' | 'OUT') => {
-  return logs.find((l) => l.type === type)?.createdAt || null;
-};
+const getLastLog = (logs: any[], type: 'IN' | 'OUT') =>
+  logs.find((log) => log.type === type)?.createdAt || null;
 
+/* 상품 생성 */
+export const createProduct = async (data: CreateProductDTO, userId: number) => {
+  // 위치를 기준으로 상품이 생성되므로,
+  // 먼저 위치가 어느 창고에 속하는지 조회해서 warehouseId를 같이 저장합니다.
+  const location = await prisma.location.findUnique({
+    where: { id: data.locationId },
+    select: {
+      id: true,
+      warehouseId: true,
+    },
+  });
 
+  if (!location) {
+    throw new Error('선택한 위치를 찾을 수 없습니다.');
+  }
 
-/*상품 생성*/
-export const createProduct = async (data: CreateProductDTO) => (
-  userId: number
-) =>{
   return prisma.product.create({
     data: {
       productCode: data.productCode,
@@ -31,7 +40,8 @@ export const createProduct = async (data: CreateProductDTO) => (
       description: data.description,
       quantity: data.quantity,
       categoryId: data.categoryId,
-      locationId: data.locationId,
+      locationId: location.id,
+      warehouseId: location.warehouseId,
       imageUrl: data.imageUrl,
       qrCode: `QR-${Date.now()}`,
       createdById: userId,
@@ -39,15 +49,17 @@ export const createProduct = async (data: CreateProductDTO) => (
   });
 };
 
-/*상품 리스트 (검색 + 필터)*/
-export const getProducts = async (filters: ProductFilterDTO & {
-  page?: number;
-  limit?: number;
-}) => {
+/* 상품 리스트 조회 */
+export const getProducts = async (
+  filters: ProductFilterDTO & {
+    page?: number;
+    limit?: number;
+  },
+) => {
   const {
     search,
     categoryId,
-    locationId,
+    warehouseId,
     minQty,
     maxQty,
     page = 1,
@@ -56,43 +68,28 @@ export const getProducts = async (filters: ProductFilterDTO & {
 
   const skip = (page - 1) * limit;
 
-  // 전체 개수 (페이지네이션용)
-  const total = await prisma.product.count({
-    where: {
-      AND: [
-        search
-          ? {
-              OR: [
-                { name: { contains: search } },
-                { description: { contains: search } },
-              ],
-            }
-          : {},
-        categoryId ? { categoryId } : {},
-        locationId ? { locationId } : {},
-        minQty !== undefined ? { quantity: { gte: minQty } } : {},
-        maxQty !== undefined ? { quantity: { lte: maxQty } } : {},
-      ],
-    },
-  });
+  const where: Prisma.ProductWhereInput = {
+    AND: [
+      search
+        ? {
+            OR: [
+              { name: { contains: search } },
+              { description: { contains: search } },
+              { productCode: { contains: search } },
+            ],
+          }
+        : {},
+      categoryId ? { categoryId } : {},
+      warehouseId ? { warehouseId } : {},
+      minQty !== undefined ? { quantity: { gte: minQty } } : {},
+      maxQty !== undefined ? { quantity: { lte: maxQty } } : {},
+    ],
+  };
+
+  const total = await prisma.product.count({ where });
 
   const products = await prisma.product.findMany({
-    where: {
-      AND: [
-        search
-          ? {
-              OR: [
-                { name: { contains: search } },
-                { description: { contains: search } },
-              ],
-            }
-          : {},
-        categoryId ? { categoryId } : {},
-        locationId ? { locationId } : {},
-        minQty !== undefined ? { quantity: { gte: minQty } } : {},
-        maxQty !== undefined ? { quantity: { lte: maxQty } } : {},
-      ],
-    },
+    where,
     include: {
       category: true,
       location: {
@@ -102,14 +99,13 @@ export const getProducts = async (filters: ProductFilterDTO & {
       },
       inventoryLogs: {
         orderBy: { createdAt: 'desc' },
-        take: 20, // 성능 고려
+        take: 20,
       },
-      createdById: true,
-      createdBy: {   
+      createdBy: {
         select: {
-        id: true,
-        email: true,
-        name: true,
+          id: true,
+          email: true,
+          name: true,
         },
       },
     },
@@ -118,27 +114,30 @@ export const getProducts = async (filters: ProductFilterDTO & {
     take: limit,
   });
 
-  //  데이터 가공
-  const result = products.map((p) => ({
-    id: p.id,
-    productCode: p.productCode,
-    name: p.name,
-    description: p.description,
-    quantity: p.quantity,
-
-    createdById: p.createdById,
-    createdBy: p.createdBy?.name ?? null,
-
-    // 위치
-    locationName: formatLocation(p.location),
-
-    // 최근 입출고
-    lastInDate: getLastLog(p.inventoryLogs, 'IN'),
-    lastOutDate: getLastLog(p.inventoryLogs, 'OUT'),
-  }));
-
   return {
-    data: result,
+    data: products.map((product) => ({
+      id: product.id,
+      productCode: product.productCode,
+      name: product.name,
+      description: product.description,
+      quantity: product.quantity,
+      imageUrl: product.imageUrl ?? null,
+
+      categoryId: product.categoryId,
+      categoryName: product.category?.name ?? null,
+
+      locationId: product.locationId,
+      locationName: formatLocation(product.location),
+
+      warehouseId:product.warehouseId,
+      warehouseName:product.location?.warehouse.name,
+
+      createdById: product.createdById,
+      createdBy: product.createdBy?.name ?? null,
+
+      lastInDate: getLastLog(product.inventoryLogs, 'IN'),
+      lastOutDate: getLastLog(product.inventoryLogs, 'OUT'),
+    })),
     pagination: {
       total,
       page,
@@ -148,25 +147,20 @@ export const getProducts = async (filters: ProductFilterDTO & {
   };
 };
 
-
-/*상품 수정*/
-export const updateProduct = async (
-  id: number,
-  data: UpdateProductDTO
-) => {
+/* 상품 수정 */
+export const updateProduct = async (id: number, data: UpdateProductDTO) => {
   return prisma.product.update({
     where: { id },
     data,
   });
 };
 
-/*상품 삭제*/
+/* 상품 삭제 */
 export const deleteProduct = async (id: number) => {
   return prisma.product.delete({
     where: { id },
   });
 };
-
 
 const productInclude: Prisma.ProductInclude = {
   category: true,
@@ -182,15 +176,14 @@ const productInclude: Prisma.ProductInclude = {
 };
 
 const getLastInOut = (logs: any[]) => {
-  const lastIn = logs.find((l) => l.type === 'IN');
-  const lastOut = logs.find((l) => l.type === 'OUT');
+  const lastIn = logs.find((log) => log.type === 'IN');
+  const lastOut = logs.find((log) => log.type === 'OUT');
 
   return {
     lastInDate: lastIn?.createdAt ?? null,
     lastOutDate: lastOut?.createdAt ?? null,
   };
 };
-
 
 const buildDetailResponse = (product: any) => {
   const { lastInDate, lastOutDate } = getLastInOut(product.inventoryLogs);
@@ -199,44 +192,42 @@ const buildDetailResponse = (product: any) => {
     id: product.id,
     name: product.name,
     imageUrl: product.imageUrl,
-    // QR
     qrCode: product.qrCode,
-    // 기본 정보
     productCode: product.productCode,
     description: product.description,
     quantity: product.quantity,
     createdAt: product.createdAt,
-    // 카테고리
     category: product.category?.name || null,
-    // 위치
     locationName: formatLocation(product.location),
-
     lastInDate,
     lastOutDate,
   };
 };
 
-/*qr 상품상세페이지 */
+/* QR 기준 상품 상세 */
 export const getProductByQRCode = async (qrCode: string) => {
   const product = await prisma.product.findUnique({
     where: { qrCode },
     include: productInclude,
   });
 
-  if (!product) throw new Error('상품 없음');
+  if (!product) {
+    throw new Error('상품을 찾을 수 없습니다.');
+  }
 
-  return buildDetailResponse(product); 
+  return buildDetailResponse(product);
 };
 
-
-/* 상품 상세페이지 */
+/* 상품 상세 */
 export const getProductById = async (id: number) => {
   const product = await prisma.product.findUnique({
     where: { id },
-    include: productInclude, 
+    include: productInclude,
   });
 
-  if (!product) return null;
+  if (!product) {
+    return null;
+  }
 
-  return buildDetailResponse(product); 
+  return buildDetailResponse(product);
 };

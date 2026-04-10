@@ -1,86 +1,75 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import ProtectedRoute from './routes/ProtectedRoute';
-import NotAuthRoute from './routes/NotAuthRoute';
-import AdminRoute from './routes/AdminRoute';
+import { useEffect } from 'react';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-
 import DashboardPage from './pages/DashboardPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ProductPage from './pages/ProductPage';
 import DetailProductPage from './pages/DetailProductPage';
-import InventoryPage from './pages/InventoryPage';
-import ScanPage from './pages/ScanPage';
 import DownloadCSVPage from './pages/DownloadCSVPage';
+import InventoryPage from './pages/InventoryPage';
+import LoginPage from './pages/LoginPage';
+import ProductPage from './pages/ProductPage';
+import RegisterPage from './pages/RegisterPage';
 import RequestProductPage from './pages/RequestProductPage';
+import ScanPage from './pages/ScanPage';
+import AdminInventoryPage from './pages/admin/AdminInventoryPage';
 import AdminPage from './pages/admin/AdminPage';
 import AdminProductPage from './pages/admin/AdminProductPage';
-import AdminInventoryPage from './pages/admin/AdminInventoryPage';
 import AdminRequestProductPage from './pages/admin/AdminRequestProductPage';
-
-import { useEffect } from 'react';
 import { useAuthUser } from './hooks/useAuthUser';
-import { useDispatch } from 'react-redux';
-import { setUser, logout } from './store/userSlice';
-
 import NavBar from './layouts';
-
+import AdminRoute from './routes/AdminRoute';
+import NotAuthRoute from './routes/NotAuthRoute';
+import ProtectedRoute from './routes/ProtectedRoute';
+import { useAppDispatch } from './store/hooks';
+import { logout, setUser } from './store/userSlice';
 
 function App() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const token = localStorage.getItem('accessToken');
-
-  const { data, isSuccess, isError } = useAuthUser();
+  const { data, isSuccess } = useAuthUser();
 
   useEffect(() => {
-    if (!token) return;
-
-    if (isSuccess && data) {
-      dispatch(setUser({
-        userData: data,
-        isAuth: true,
-      }));
-    }
-
-    if (isError) {
+    if (!token) {
       dispatch(logout());
+      return;
     }
-  }, [isSuccess, isError, data, dispatch, token]);
-  
+
+    if (isSuccess) {
+      if (data) {
+        dispatch(setUser(data));
+      } else {
+        dispatch(logout());
+      }
+    }
+  }, [data, dispatch, isSuccess, token]);
+
   return (
     <BrowserRouter>
-      <ToastContainer position='bottom-right' theme='light' pauseOnHover autoClose={2000}/>
+      <ToastContainer position="bottom-right" theme="light" pauseOnHover autoClose={2000} />
       <Routes>
-        {/* 로그인 안된 사람만 */}
         <Route element={<NotAuthRoute />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
         </Route>
 
-        <Route element={<NavBar/>}>
-          <Route path='/' element={<DashboardPage />} />
-          {/* 로그인 된 사람만 */}
-          <Route element={<ProtectedRoute/>}>
+        <Route element={<NavBar />}>
+          <Route path="/" element={<DashboardPage />} />
+
+          <Route element={<ProtectedRoute />}>
             <Route path="/product" element={<ProductPage />} />
             <Route path="/product/:productId" element={<DetailProductPage />} />
             <Route path="/inventory" element={<InventoryPage />} />
             <Route path="/scan" element={<ScanPage />} />
             <Route path="/csv" element={<DownloadCSVPage />} />
             <Route path="/requestproduct" element={<RequestProductPage />} />
-            {/* 관리자만 */}
-            <Route element={<AdminRoute/>}>
+
+            <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/admin/product" element={<AdminProductPage />} />
               <Route path="/admin/inventorylog" element={<AdminInventoryPage />} />
               <Route path="/admin/requestproduct" element={<AdminRequestProductPage />} />
             </Route>
-          </Route>        
-        
-        
+          </Route>
         </Route>
-
-
-
       </Routes>
     </BrowserRouter>
   );
