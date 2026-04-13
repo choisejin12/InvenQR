@@ -45,6 +45,7 @@ const buildRequestWhere = ({
 
 const mapRequest = (request: any) => ({
   id: request.id,
+  productId: request.productId ?? null,
   productCode: request.productCode,
   name: request.name,
   description: request.description,
@@ -76,7 +77,48 @@ const mapRequest = (request: any) => ({
   rejectReason: request.rejectReason,
 });
 
-/* 관리자용 전체 요청 목록 조회 */
+// 승인된 요청은 실제 Product가 생성되므로,
+// 요청 목록에서도 "어느 상품으로 승인되었는지"를 함께 내려줍니다.
+const attachApprovedProductIds = async (requests: any[]) => {
+  const approvedProductCodes = Array.from(
+    new Set(
+      requests
+        .filter((request) => request.status === RequestStatus.APPROVED)
+        .map((request) => request.productCode),
+    ),
+  );
+
+  if (approvedProductCodes.length === 0) {
+    return requests.map((request) => ({
+      ...request,
+      productId: null,
+    }));
+  }
+
+  const products = await prisma.product.findMany({
+    where: {
+      productCode: {
+        in: approvedProductCodes,
+      },
+    },
+    select: {
+      id: true,
+      productCode: true,
+    },
+  });
+
+  const productIdMap = new Map(products.map((product) => [product.productCode, product.id]));
+
+  return requests.map((request) => ({
+    ...request,
+    productId:
+      request.status === RequestStatus.APPROVED
+        ? productIdMap.get(request.productCode) ?? null
+        : null,
+  }));
+};
+
+/* 관리자 전체 요청 목록 조회 */
 export const getProductRequests = async ({
   status,
   page = 1,
@@ -108,8 +150,10 @@ export const getProductRequests = async ({
     take: limit,
   });
 
+  const requestsWithProductIds = await attachApprovedProductIds(requests);
+
   return {
-    data: requests.map(mapRequest),
+    data: requestsWithProductIds.map(mapRequest),
     pagination: {
       total,
       page,
@@ -136,7 +180,7 @@ export const getMyProductRequests = async (
   const where = buildRequestWhere({ status, userId });
 
   const total = await prisma.productRequest.count({ where });
-  
+
   const requests = await prisma.productRequest.findMany({
     where,
     include: {
@@ -154,8 +198,10 @@ export const getMyProductRequests = async (
     take: limit,
   });
 
+  const requestsWithProductIds = await attachApprovedProductIds(requests);
+
   return {
-    data: requests.map(mapRequest),
+    data: requestsWithProductIds.map(mapRequest),
     pagination: {
       total,
       page,
@@ -197,7 +243,6 @@ export const approveProductRequest = async (
       },
     });
 
-
     const product = await tx.product.create({
       data: {
         productCode: request.productCode,
@@ -206,7 +251,7 @@ export const approveProductRequest = async (
         quantity: request.quantity,
         categoryId: request.categoryId,
         locationId: location.id,
-        warehouseId: request.warehouseId,     ///수정한부분
+        warehouseId: request.warehouseId,
         qrCode: `QR-${Date.now()}`,
         imageUrl: request.imageUrl,
         createdById: adminId,
@@ -219,7 +264,7 @@ export const approveProductRequest = async (
           productId: product.id,
           userId: request.requestedById,
           locationId: location.id,
-          warehouseId: request.warehouseId,  ///수정한부분
+          warehouseId: request.warehouseId,
           type: InventoryType.IN,
           quantity: request.quantity,
           note: '초기 입고',
@@ -247,7 +292,10 @@ export const approveProductRequest = async (
     });
 
     return {
-      request: mapRequest(updatedRequest),
+      request: mapRequest({
+        ...updatedRequest,
+        productId: product.id,
+      }),
       product,
     };
   });
@@ -297,5 +345,8 @@ export const rejectProductRequest = async (
     },
   });
 
-  return mapRequest(updatedRequest);
+  return mapRequest({
+    ...updatedRequest,
+    productId: null,
+  });
 };

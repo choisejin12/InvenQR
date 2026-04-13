@@ -13,6 +13,7 @@ export type CreateProductRequestPayload = {
 
 export type ProductRequestItem = {
   id: number;
+  productId?: number | null;
   productCode: string;
   name: string;
   description?: string | null;

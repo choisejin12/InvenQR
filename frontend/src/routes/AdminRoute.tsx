@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
+import {toast} from 'react-toastify';
 
 function AdminRoute() {
   const { userData, isAuth } = useAppSelector((state) => state.user);
@@ -14,6 +15,7 @@ function AdminRoute() {
   }
 
   if (!userData || userData.role !== 'ADMIN') {
+    toast.error('관리자만 접근가능합니다.')
     return <Navigate to="/" replace />;
   }
 

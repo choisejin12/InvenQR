@@ -54,9 +54,11 @@ export const getOne = async (req: Request, res: Response) => {
 
 export const update = async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).user?.id;
     const result = await service.updateProduct(
       Number(req.params.id),
-      req.body
+      req.body,
+      userId,
     );
     res.json(result);
   } catch (err: any) {

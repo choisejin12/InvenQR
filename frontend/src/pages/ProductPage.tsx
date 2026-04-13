@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FiFilter, FiPackage, FiPlus, FiRefreshCcw, FiSearch } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 import ProductRequestModal from '../components/product/ProductRequestModal';
 import { useCategories } from '../hooks/useCategories';
 import { useProducts } from '../hooks/useProducts';
@@ -44,6 +45,7 @@ const getLocationOptions = (products: ProductItem[]) => {
 };
 
 const ProductPage = () => {
+  const navigate = useNavigate();
   const [keyword, setKeyword] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [locationFilter, setLocationFilter] = useState('ALL');
@@ -286,7 +288,11 @@ const ProductPage = () => {
                   </thead>
                   <tbody>
                     {filteredProducts.map((product) => (
-                      <tr key={product.id} className="border-t border-slate-100 text-sm text-slate-700">
+                      <tr
+                        key={product.id}
+                        onClick={() => navigate(`/product/${product.id}`)}
+                        className="cursor-pointer border-t border-slate-100 text-sm text-slate-700 transition hover:bg-slate-50"
+                      >
                         <td className="px-6 py-4 font-semibold text-slate-900">{product.productCode}</td>
                         <td className="px-6 py-4">{product.name}</td>
                         <td className="px-6 py-4 text-slate-500">{product.description || '-'}</td>
@@ -316,7 +322,8 @@ const ProductPage = () => {
                 {filteredProducts.map((product) => (
                   <article
                     key={product.id}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm"
+                    onClick={() => navigate(`/product/${product.id}`)}
+                    className="cursor-pointer rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>

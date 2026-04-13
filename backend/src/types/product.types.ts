@@ -4,7 +4,9 @@ export type CreateProductDTO = {
   description?: string;
   quantity: number;
   categoryId?: number;
-  locationId: number;
+  locationId?: number;
+  warehouseId?: number;
+  locationCode?: string;
   imageUrl?: string;
 };
 
@@ -14,6 +16,8 @@ export type UpdateProductDTO = {
   quantity?: number;
   categoryId?: number;
   locationId?: number;
+  warehouseId?: number;
+  locationCode?: string;
   imageUrl?: string;
 };
 
@@ -23,6 +27,6 @@ export type ProductFilterDTO = {
   warehouseId?: number;
   minQty?: number;
   maxQty?: number;
-  createdById?:number;
+  createdById?: number;
   name?: string;
 };

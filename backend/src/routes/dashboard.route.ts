@@ -4,6 +4,6 @@ import  auth  from '../middleware/auth';
 
 const router = Router();
 
-router.get('/', auth, getDashboard);
+router.get('/', getDashboard);
 
 export default router;

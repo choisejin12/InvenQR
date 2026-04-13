@@ -37,19 +37,19 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F6F8] flex items-center justify-center px-4">
-      <div className="w-full max-w-300 flex justify-center md:justify-between items-center">
-        <div className="hidden md:block w-1/4" />
+    <div className="flex min-h-screen items-center justify-center bg-[#F5F6F8] px-4">
+      <div className="flex w-full max-w-300 items-center justify-center md:justify-between">
+        <div className="hidden w-1/4 md:block" />
 
-        <div className="w-full max-w-100 md:max-w-125 bg-white rounded-lg shadow-md p-6 md:p-10">
-          <div className="flex justify-center mb-6">
+        <div className="w-full max-w-100 rounded-lg bg-white p-6 shadow-md md:max-w-125 md:p-10">
+          <div className="mb-6 flex justify-center">
             <img src="/logo.png" alt="logo" className="h-8 md:h-10" />
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
-              <div className="flex items-center border border-[#F0F3F5] px-3 py-2 bg-gray-50 md:h-14.5">
-                <FaUser className="text-gray-400 mr-4" />
+              <div className="flex items-center border border-[#F0F3F5] bg-gray-50 px-3 py-2 md:h-14.5">
+                <FaUser className="mr-4 text-gray-400" />
                 <input
                   type="email"
                   id="email"
@@ -61,19 +61,19 @@ const LoginPage = () => {
                     },
                   })}
                   placeholder="이메일"
-                  className="w-full bg-transparent outline-none text-sm"
+                  className="w-full bg-transparent text-sm outline-none"
                 />
               </div>
               {errors.email && (
                 <div>
-                  <span className="absolute mt-0.75 text-red-500 text-xs">{errors.email.message}</span>
+                  <span className="absolute mt-0.75 text-xs text-red-500">{errors.email.message}</span>
                 </div>
               )}
             </div>
 
             <div>
-              <div className="flex items-center border border-[#F0F3F5] px-3 py-2 bg-gray-50 md:h-14.5">
-                <FaLock className="text-gray-400 mr-4" />
+              <div className="flex items-center border border-[#F0F3F5] bg-gray-50 px-3 py-2 md:h-14.5">
+                <FaLock className="mr-4 text-gray-400" />
                 <input
                   type="password"
                   id="password"
@@ -85,12 +85,12 @@ const LoginPage = () => {
                     },
                   })}
                   placeholder="비밀번호"
-                  className="w-full bg-transparent outline-none text-sm"
+                  className="w-full bg-transparent text-sm outline-none"
                 />
               </div>
               {errors.password && (
                 <div>
-                  <span className="absolute mt-0.75 text-red-500 text-xs">
+                  <span className="absolute mt-0.75 text-xs text-red-500">
                     {errors.password.message}
                   </span>
                 </div>
@@ -99,21 +99,21 @@ const LoginPage = () => {
 
             <button
               type="submit"
-              className="w-full bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800 transition"
+              className="w-full rounded-md bg-blue-700 py-2 text-white transition hover:bg-blue-800"
             >
               로그인
             </button>
 
             <p className="text-center text-sm text-gray-500">
               계정이 없다면{' '}
-              <a href="/register" className="font-semibold hover:underline text-black">
+              <a href="/register" className="font-semibold text-black hover:underline">
                 회원가입
               </a>
             </p>
           </form>
         </div>
 
-        <div className="hidden md:block w-1/4" />
+        <div className="hidden w-1/4 md:block" />
       </div>
     </div>
   );
