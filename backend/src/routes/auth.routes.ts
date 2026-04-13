@@ -1,5 +1,5 @@
 import express from 'express';
-import { login, register } from '../controllers/auth.controller';
+import { getDatabaseConnectionDebug, login, register } from '../controllers/auth.controller';
 import auth from '../middleware/auth';
 
 const router = express.Router();
@@ -23,5 +23,7 @@ router.get('/auth', auth, async (req, res) => {
     return res.status(500).json({ message: '인증 확인에 실패했습니다.' });
   }
 });
+
+router.get('/debug/db', auth, getDatabaseConnectionDebug);
 
 export default router;

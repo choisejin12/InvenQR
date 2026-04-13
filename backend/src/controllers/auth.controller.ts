@@ -3,6 +3,34 @@ import prisma from '../config/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+const getDatabaseDebugInfo = () => {
+  const rawUrl = process.env.DATABASE_URL;
+
+  if (!rawUrl) {
+    return {
+      configured: false,
+      message: 'DATABASE_URL is not configured.',
+    };
+  }
+
+  try {
+    const parsed = new URL(rawUrl);
+
+    return {
+      configured: true,
+      protocol: parsed.protocol.replace(':', ''),
+      host: parsed.hostname,
+      port: parsed.port || null,
+      database: parsed.pathname.replace(/^\//, ''),
+    };
+  } catch {
+    return {
+      configured: true,
+      message: 'DATABASE_URL exists but could not be parsed.',
+    };
+  }
+};
+
 /* 회원가입 */
 export const register = async (req: Request, res: Response) => {
   try {
@@ -99,5 +127,46 @@ export const login = async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     return res.status(500).json({ message: err.message || '로그인 중 서버 오류가 발생했습니다.' });
+  }
+};
+
+export const getDatabaseConnectionDebug = async (req: Request, res: Response) => {
+  try {
+    const recentUsers = await prisma.user.findMany({
+      orderBy: { id: 'desc' },
+      take: 5,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
+    });
+
+    const totalUsers = await prisma.user.count();
+
+    return res.json({
+      currentUser: req.user
+        ? {
+            id: req.user.id,
+            email: req.user.email,
+            role: req.user.role,
+            name: req.user.name,
+          }
+        : null,
+      server: {
+        nodeEnv: process.env.NODE_ENV || 'development',
+        jwtSecretConfigured: Boolean(process.env.JWT_SECRET),
+      },
+      database: getDatabaseDebugInfo(),
+      users: {
+        total: totalUsers,
+        recent: recentUsers,
+      },
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      message: err.message || 'DB debug info could not be loaded.',
+    });
   }
 };
