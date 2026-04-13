@@ -37,14 +37,14 @@ const getSignedQuantity = (type: 'IN' | 'OUT', quantity: number) =>
   `${type === 'IN' ? '+' : '-'}${quantity}`;
 
 const DetailProductPage = () => {
-  // URL의 :productId 값을 읽어와 어떤 상품을 보여줄지 결정합니다.
+  // URL의 :productId 값을 읽어와 어떤 상품을 보여줄지 결정
   const { productId } = useParams();
   const navigate = useNavigate();
 
-  // 입고/출고 모달은 하나만 열리도록 모드 값으로 제어합니다.
+  // 입고/출고 모달은 하나만 열리도록 모드 값으로 제어
   const [movementMode, setMovementMode] = useState<'IN' | 'OUT' | null>(null);
 
-  // 하단 입출고 기록은 페이지 단위로 조회합니다.
+  // 하단 입출고 기록은 페이지 단위로 조회
   const [logPage, setLogPage] = useState(1);
 
   const parsedProductId = Number(productId);
@@ -70,8 +70,8 @@ const DetailProductPage = () => {
   const isSubmitting = stockIn.isPending || stockOut.isPending;
   const [qrImageUrl, setQrImageUrl] = useState('');
 
-  // QR 코드는 문자열 값을 이미지 data URL로 변환해서 렌더링합니다.
-  // 이렇게 하면 라이브러리 import 호환 문제 없이 항상 img로 안전하게 보여줄 수 있습니다.
+  // QR 코드는 문자열 값을 이미지 data URL로 변환해서 렌더링
+  // 이렇게 하면 라이브러리 import 호환 문제 없이 항상 img로 보여줄수있음
   useEffect(() => {
     const qrValue = product?.qrCode || (product ? `PRODUCT-${product.productCode}` : '');
 
@@ -106,7 +106,7 @@ const DetailProductPage = () => {
     };
   }, [product]);
 
-  // 상세 카드의 상태 배지는 수량에 따라 색을 다르게 줍니다.
+  // 상세 카드의 상태 배지는 수량에 따라 색을 다르게
   const stockTone = useMemo(() => {
     if (!product) {
       return 'bg-slate-100 text-slate-600';

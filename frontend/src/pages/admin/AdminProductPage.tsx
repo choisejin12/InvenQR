@@ -16,7 +16,7 @@ import type {
 } from '../../types/product.type';
 
 const AdminProductPage = () => {
-  // 검색어는 상단 입력창과 연결되어 바로 필터링됩니다.
+  // 검색어는 상단 입력창과 연결되어 바로 필터링
   const [keyword, setKeyword] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
@@ -35,7 +35,7 @@ const AdminProductPage = () => {
 
   const products = data?.data ?? [];
 
-  // 검색은 상품명, 상품코드, 위치, 등록자 기준으로 한 번에 필터링합니다.
+  // 검색은 상품명, 상품코드, 위치, 등록자 기준으로 한 번에 필터링
   const filteredProducts = useMemo(() => {
     const normalizedKeyword = keyword.trim().toLowerCase();
 

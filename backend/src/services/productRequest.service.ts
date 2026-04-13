@@ -77,8 +77,7 @@ const mapRequest = (request: any) => ({
   rejectReason: request.rejectReason,
 });
 
-// 승인된 요청은 실제 Product가 생성되므로,
-// 요청 목록에서도 "어느 상품으로 승인되었는지"를 함께 내려줍니다.
+// 승인된 요청은 실제 Product가 생성되므로 요청 목록에서도 "어느 상품으로 승인되었는지"를 함께 내려주기
 const attachApprovedProductIds = async (requests: any[]) => {
   const approvedProductCodes = Array.from(
     new Set(
@@ -211,7 +210,7 @@ export const getMyProductRequests = async (
   };
 };
 
-/* 관리자 승인 시 요청 데이터를 Product 테이블로 옮깁니다. */
+/* 관리자 승인 시 요청 데이터를 Product 테이블로 옮김 */
 export const approveProductRequest = async (
   requestId: number,
   adminId: number,
@@ -301,7 +300,7 @@ export const approveProductRequest = async (
   });
 };
 
-/* 관리자 거절 시 거절 사유를 함께 저장합니다. */
+/* 관리자 거절 시 거절 사유를 함께 저장 */
 export const rejectProductRequest = async (
   requestId: number,
   adminId: number,

@@ -12,10 +12,10 @@ function MainLayout() {
   return (
     <div className="flex flex-col h-screen">
       
-      {/* 🔵 상단 헤더 */}
+      {/* 상단 헤더 */}
       <Header onMenuClick={() => setOpen((prev) => !prev)} />
 
-      {/* 🔵 아래 영역 (Nav + Content) */}
+      {/* 아래 영역 (Nav + Content) */}
       <div className="flex flex-1 overflow-hidden z-60">
         
         {/* 사이드바 */}

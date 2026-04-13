@@ -14,8 +14,7 @@ const ScanPage = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const handledCodeRef = useRef<string>('');
 
-  // 메인 화면에서는 디자인에 집중하고,
-  // 실제 스캐너는 버튼을 눌렀을 때만 모달에서 실행되도록 분리합니다.
+  // 실제 스캐너는 버튼을 눌렀을 때만 모달에서 실행되도록 분리
   const [manualCode, setManualCode] = useState('');
   const [isScannerModalOpen, setIsScannerModalOpen] = useState(false);
   const [isManualPanelOpen, setIsManualPanelOpen] = useState(false);
@@ -43,7 +42,7 @@ const ScanPage = () => {
     }
   };
 
-  // 스캐너 모달이 열려 있을 때만 카메라를 실행합니다.
+  // 스캐너 모달이 열려 있을 때만 카메라를 실행
   useEffect(() => {
     if (!isScannerModalOpen) {
       return undefined;
@@ -72,7 +71,6 @@ const ScanPage = () => {
             await moveToProductDetail(decodedText);
           },
           () => {
-            // 프레임 단위 스캔 실패는 흔하므로 무시합니다.
           },
         );
 
@@ -131,7 +129,7 @@ const ScanPage = () => {
       return;
     }
 
-    // 이미지 해석은 카메라 모달과 별개의 숨김 DOM 노드를 사용합니다.
+    // 이미지 해석은 카메라 모달과 별개의 숨김 DOM 노드를 사용
     const scanner = new Html5Qrcode(imageDecoderId);
 
     try {

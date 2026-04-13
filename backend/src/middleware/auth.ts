@@ -11,7 +11,7 @@ interface JwtPayload {
 
 const auth = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // 1. 헤더에서 토큰 가져오기
+    // 헤더에서 토큰 가져오기
     const authHeader = req.headers['authorization'];
 
     const token = authHeader?.split(' ')[1];
@@ -20,13 +20,13 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(401).json({ message: '토큰이 없습니다.' });
     }
 
-    // 2. 토큰 검증
+    // 토큰 검증
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET as string
     ) as JwtPayload;
 
-    // 3. DB에서 유저 조회
+    // DB에서 유저 조회
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
     });
@@ -35,7 +35,7 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(401).json({ message: '유저 없음' });
     }
 
-    // 4. req에 유저 정보 추가
+    // req에 유저 정보 추가
     req.user = user;
 
     next();

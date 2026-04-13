@@ -12,12 +12,12 @@ export const register = async (req: Request, res: Response) => {
       name: string;
     };
 
-    // 1. 기본 입력값이 비어 있으면 바로 종료합니다.
+    // 기본 입력값이 비어 있으면 바로 종료
     if (!email || !password || !name) {
       return res.status(400).json({ message: '이름, 이메일, 비밀번호를 모두 입력해주세요.' });
     }
 
-    // 2. 같은 이메일이 이미 존재하는지 확인합니다.
+    // 같은 이메일이 이미 존재하는지 확인
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -26,7 +26,7 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ message: '이미 존재하는 이메일입니다.' });
     }
 
-    // 3. 비밀번호는 해시로 변환한 뒤 저장합니다.
+    // 비밀번호는 해시로 변환한 뒤 저장
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
@@ -59,12 +59,12 @@ export const login = async (req: Request, res: Response) => {
       password: string;
     };
 
-    // 1. 프론트에서 값이 빠진 채로 요청되면 원인을 바로 알 수 있게 합니다.
+    // 프론트에서 값이 빠진 채로 요청되면 원인을 바로 알 수 있게
     if (!email || !password) {
       return res.status(400).json({ message: '이메일과 비밀번호를 모두 입력해주세요.' });
     }
 
-    // 2. 이메일로 사용자를 조회합니다.
+    // 이메일로 사용자를 조회
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -73,14 +73,14 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ message: '해당 이메일을 가진 사용자가 없습니다.' });
     }
 
-    // 3. 저장된 해시와 입력 비밀번호를 비교합니다.
+    // 저장된 해시와 입력 비밀번호를 비교
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
       return res.status(400).json({ message: '비밀번호가 올바르지 않습니다.' });
     }
 
-    // 4. 로그인 성공 시 JWT를 발급하고 사용자 정보도 함께 내려줍니다.
+    // 로그인 성공 시 JWT를 발급하고 사용자 정보도 함께
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET as string,

@@ -35,7 +35,7 @@ const RejectReasonModal = ({
       return;
     }
 
-    // 모달이 열릴 때마다 이전 입력값을 지워서 새 거절 사유를 깔끔하게 입력하게 합니다.
+    // 모달이 열릴 때마다 이전 입력값을 지워서 새 거절 사유를 깔끔하게 입력하게 
     reset({ reason: '' });
   }, [isOpen, reset]);
 

@@ -49,7 +49,7 @@ const getPreviewImage = (request: ProductRequestItem) => {
 };
 
 const RequestProductPage = () => {
-  // 어떤 상태의 요청만 볼지 탭으로 제어합니다.
+  // 어떤 상태의 요청만 볼지 탭으로 제어
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
   const { data, isLoading, isError, refetch } = useMyProductRequests('ALL');
   const requests = data?.data ?? [];
@@ -74,7 +74,7 @@ const RequestProductPage = () => {
   }, [activeTab, requests]);
 
   const handleRequestClick = (request: ProductRequestItem) => {
-    // 승인된 요청 + 실제 상품 ID가 있는 경우에만 상세 페이지로 이동합니다.
+    // 승인된 요청 + 실제 상품 ID가 있는 경우에만 상세 페이지로 이동
     if (request.status !== 'APPROVED' || !request.productId) {
       return;
     }

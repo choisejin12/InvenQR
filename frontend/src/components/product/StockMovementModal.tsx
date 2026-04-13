@@ -55,7 +55,7 @@ const StockMovementModal = ({
     },
   });
 
-  // 모달이 열릴 때마다 현재 상품 정보 기준으로 기본값을 다시 세팅합니다.
+  // 모달이 열릴 때마다 현재 상품 정보 기준으로 기본값을 다시 세팅
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -70,7 +70,7 @@ const StockMovementModal = ({
     });
   }, [initialLocationCode, initialWarehouseId, isOpen, reset]);
 
-  // 모달이 열려 있는 동안 배경 스크롤과 ESC 닫기를 제어합니다.
+  // 모달이 열려 있는 동안 배경 스크롤과 ESC 닫기를 제어
   useEffect(() => {
     if (!isOpen) {
       return undefined;

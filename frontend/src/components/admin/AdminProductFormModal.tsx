@@ -77,7 +77,7 @@ const AdminProductFormModal = ({
   const selectedCategoryId = watch('categoryId');
   const selectedWarehouseId = watch('warehouseId');
 
-  // 모달이 열릴 때 create / edit 모드에 맞게 초기값을 다시 채웁니다.
+  // 모달이 열릴 때 create / edit 모드에 맞게 초기값을 다시 채우기
   useEffect(() => {
     if (!isOpen) {
       return;

@@ -45,7 +45,7 @@ const getFilteredLogs = (logs: InventoryLogItem[], keyword: string) => {
 };
 
 const InventoryPage = () => {
-  // 필터 UI 상태입니다. 카테고리/창고/입출고 타입을 바꾸면 API 재조회가 일어납니다.
+  // 필터 UI 상태, 카테고리/창고/입출고 타입을 바꾸면 API 재조회
   const [keyword, setKeyword] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [warehouseFilter, setWarehouseFilter] = useState('ALL');
@@ -63,7 +63,7 @@ const InventoryPage = () => {
 
   const logs = data?.data ?? [];
 
-  // 검색창은 입력할 때마다 프론트에서 빠르게 필터링해서 UX를 부드럽게 만듭니다.
+  // 검색창은 입력할 때마다 프론트에서 빠르게 필터링해서 UX를 부드럽게 
   const filteredLogs = useMemo(() => getFilteredLogs(logs, keyword), [logs, keyword]);
 
   const summary = useMemo(() => {

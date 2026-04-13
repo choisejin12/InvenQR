@@ -5,7 +5,6 @@ import admin from '../middleware/admin';
 
 const router = Router();
 
-// Admin only
 router.get('/', auth, controller.getAll);
 router.post('/', auth, admin, controller.create);
 router.patch('/:id', auth, admin, controller.update);

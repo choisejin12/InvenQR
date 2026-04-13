@@ -29,8 +29,8 @@ const getTypeBadgeClassName = (type: 'IN' | 'OUT') =>
     : 'bg-rose-50 text-rose-600 ring-1 ring-rose-100';
 
 const AdminInventoryPage = () => {
-  // 관리자 필터는 API와 직접 연결합니다.
-  // 값이 바뀌면 React Query가 새 조건으로 자동 재조회합니다.
+  // 관리자 필터는 API와 직접 연결
+  // 값이 바뀌면 React Query가 새 조건으로 자동 재조회
   const [warehouseFilter, setWarehouseFilter] = useState('ALL');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState<InventoryFilter>('ALL');
@@ -53,7 +53,6 @@ const AdminInventoryPage = () => {
   const logs = data?.data ?? [];
   const pagination = data?.pagination;
 
-  // 필터가 바뀌면 항상 1페이지부터 다시 보는 편이 UX가 자연스럽습니다.
   useEffect(() => {
     setPage(1);
   }, [warehouseFilter, categoryFilter, typeFilter, startDate, endDate]);

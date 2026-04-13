@@ -115,8 +115,7 @@ export const createProduct = async (data: CreateProductDTO, userId: number) => {
       },
     });
 
-    // 관리자 직접 등록으로 초기 재고가 들어가면,
-    // 이후 기록 화면과 수량이 어긋나지 않도록 초기 입고 로그를 함께 남깁니다.
+    // 관리자 직접 등록으로 초기 재고가 들어가면 이후 기록 화면과 수량이 어긋나지 않도록 초기 입고 로그를 함께 남김
     if (data.quantity > 0) {
       await tx.inventoryLog.create({
         data: {
@@ -287,8 +286,7 @@ export const updateProduct = async (id: number, data: UpdateProductDTO, userId: 
 
     const quantityDiff = nextQuantity - currentProduct.quantity;
 
-    // 관리자 수정에서 재고 수량이 바뀌면 차이만큼 로그를 자동 생성해서
-    // 상세 페이지 / 입출고 기록 / 대시보드 수치가 서로 어긋나지 않게 합니다.
+    // 관리자 수정에서 재고 수량이 바뀌면 차이만큼 로그를 자동 생성해서 상세 페이지 / 입출고 기록 / 대시보드 수치가 서로 어긋나지 않게
     if (quantityDiff !== 0 && location) {
       await tx.inventoryLog.create({
         data: {
@@ -314,7 +312,7 @@ export const deleteProduct = async (id: number) => {
     where: { productId: id },
   });
 
-  // 기록이 있는 상품을 바로 삭제하면 이력 조회가 깨질 수 있으므로 막아둡니다.
+  // 기록이 있는 상품을 바로 삭제하면 이력 조회가 깨질 수 있으므로 막기
   if (inventoryLogCount > 0) {
     throw new Error('입출고 기록이 있는 상품은 삭제할 수 없습니다.');
   }

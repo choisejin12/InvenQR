@@ -37,8 +37,7 @@ const sortLogsByTimeline = <
       return timeDiff;
     }
 
-    // 같은 시각으로 들어온 경우에는 최신 id를 먼저 보여주면
-    // 관리자 수정으로 추가된 로그도 화면에서 자연스럽게 최근 기록으로 정렬됩니다.
+    // 같은 시각으로 들어온 경우에는 최신 id를 먼저 보여주면 관리자 수정으로 추가된 로그도 화면에서 자연스럽게 최근 기록으로 정렬
     return b.id - a.id;
   });
 
@@ -46,7 +45,7 @@ const resolveLocation = async (
   tx: Prisma.TransactionClient,
   data: { warehouseId?: number; locationId?: number; locationCode?: string },
 ) => {
-  // 이전 구조처럼 locationId가 넘어오면 그대로 사용합니다.
+  // 이전 구조처럼 locationId가 넘어오면 그대로 사용
   if (data.locationId) {
     const location = await tx.location.findUnique({
       where: { id: data.locationId },
@@ -64,7 +63,7 @@ const resolveLocation = async (
     return location;
   }
 
-  // 새 UI에서는 창고와 위치 코드를 받아 해당 위치를 재사용하거나 새로 만듭니다.
+  // 새 UI에서는 창고와 위치 코드를 받아 해당 위치를 재사용하거나 새로 만듦
   const warehouseId = Number(data.warehouseId);
   const locationCode = data.locationCode?.trim().toUpperCase();
 
@@ -98,7 +97,7 @@ const processStockMovement = async (
   type: InventoryType,
 ) => {
   return prisma.$transaction(async (tx) => {
-    // 1. 처리할 상품이 존재하는지 먼저 확인합니다.
+    // 처리할 상품이 존재하는지 먼저 확인
     const product = await tx.product.findUnique({
       where: { id: data.productId },
     });
@@ -107,15 +106,15 @@ const processStockMovement = async (
       throw new Error('상품이 존재하지 않습니다.');
     }
 
-    // 2. 사용자가 고른 창고/위치 정보를 실제 Location 레코드로 맞춥니다.
+    // 사용자가 고른 창고/위치 정보를 실제 Location 레코드로 맞춤
     const location = await resolveLocation(tx, data);
 
-    // 3. 출고일 때는 현재 수량보다 많이 뺄 수 없게 막습니다.
+    // 출고일 때는 현재 수량보다 많이 뺄 수 없게 막기
     if (type === InventoryType.OUT && product.quantity < data.quantity) {
       throw new Error('재고가 부족합니다.');
     }
 
-    // 4. 상품의 최신 수량과 창고/위치 정보를 함께 저장합니다.
+    // 상품의 최신 수량과 창고/위치 정보를 함께 저장
     const updatedProduct = await tx.product.update({
       where: { id: data.productId },
       data: {
@@ -127,7 +126,7 @@ const processStockMovement = async (
       },
     });
 
-    // 5. 입출고 로그에도 같은 위치와 창고를 남겨 상세 페이지에서 바로 보여줄 수 있게 합니다.
+    // 입출고 로그에도 같은 위치와 창고를 남겨 상세 페이지에서 바로 보여줄 수 있게 
     await tx.inventoryLog.create({
       data: {
         productId: data.productId,

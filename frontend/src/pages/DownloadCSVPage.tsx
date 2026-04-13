@@ -57,7 +57,7 @@ const downloadCards = [
 ];
 
 const DownloadCSVPage = () => {
-  // 어떤 파일을 다운로드 중인지 기억해 두면 버튼 중복 클릭을 막을 수 있습니다.
+  // 어떤 파일을 다운로드 중인지 기억해 두면 버튼 중복 클릭을 막을 수 있음
   const [downloadingType, setDownloadingType] = useState<DownloadKind>(null);
   const { data, isLoading, isError, refetch, isFetching } = useDownloadLogs(true);
 

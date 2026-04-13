@@ -51,7 +51,7 @@ function Nav({ open, setOpen }: Props) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const location = useLocation();
 
-  /** ✅ 현재 경로 기반 자동 open */
+  /** 현재 경로 기반 자동 open */
   useEffect(() => {
     for (const menu of menuList) {
       if (menu.children) {
@@ -72,7 +72,7 @@ function Nav({ open, setOpen }: Props) {
 
   return (
     <>
-      {/* 🔵 사이드바 */}
+      {/*사이드바 */}
       <div
         className={`
         fixed md:static  md:top-0 left-0 h-[calc(100%-56px)] md:h-full w-64 bg-[#2f3e4d]
@@ -87,7 +87,7 @@ function Nav({ open, setOpen }: Props) {
 
             return (
               <div key={menu.title}>
-                {/* 🔵 단일 메뉴 */}
+                {/* 단일 메뉴 */}
                 {menu.path && !menu.children ? (
                   <Link
                     to={menu.path}
@@ -109,7 +109,7 @@ function Nav({ open, setOpen }: Props) {
                   </Link>
                 ) : (
                   <>
-                    {/* 🔵 부모 메뉴 (클릭하면 펼침) */}
+                    {/* 부모 메뉴 (클릭하면 펼침) */}
                     <div
                       onClick={() => toggleMenu(menu.title)}
                       className="flex flex-row px-3 py-2 text-white text-sm cursor-pointer"
@@ -125,7 +125,7 @@ function Nav({ open, setOpen }: Props) {
                       </div>
                     </div>
 
-                    {/* 🔵 하위 메뉴 (애니메이션 적용) */}
+                    {/* 하위 메뉴 (애니메이션 적용) */}
                     <div
                       className={`
                         ml-3 space-y-1 overflow-hidden transition-all duration-300
