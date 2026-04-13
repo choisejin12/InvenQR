@@ -15,6 +15,17 @@ const categoryNames = [
   '기타',
 ];
 
+const warehouses = [
+  {
+    name: '화성창고A',
+    code: 'HW-A',
+  },
+  {
+    name: '시흥창고B',
+    code: 'SH-B',
+  },
+];
+
 async function main() {
   for (const name of categoryNames) {
     await prisma.category.upsert({
@@ -24,7 +35,17 @@ async function main() {
     });
   }
 
-  console.log(`Seeded ${categoryNames.length} categories.`);
+  for (const warehouse of warehouses) {
+    await prisma.warehouse.upsert({
+      where: { code: warehouse.code },
+      update: {
+        name: warehouse.name,
+      },
+      create: warehouse,
+    });
+  }
+
+  console.log(`Seeded ${categoryNames.length} categories and ${warehouses.length} warehouses.`);
 }
 
 main()
