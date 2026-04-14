@@ -16,8 +16,7 @@
 
 ## 배포 링크
 
-- Backend API: [https://invenqr.onrender.com](https://invenqr.onrender.com)
-- Frontend: 배포 주소 추가 예정
+- [https://invenqr.onrender.com](https://invenqr.onrender.com)
 
 ## 빠른 목차
 
