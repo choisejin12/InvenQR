@@ -34,7 +34,7 @@
 
 ## 📖 프로젝트 개요
 
-InvenQR는 창고 내 자산을 상품, 창고, 위치, 입출고 기록, 승인 요청 단위로 체계적으로 관리하는 웹 기반 재고 관리 서비스입니다.
+InvenQR는 창고 내 자산을 상품, 창고, 위치, 입출고 기록, 승인 요청 단위로 체계적으로 관리하는 웹 기반 반응형 재고 관리 서비스입니다.
 <b>실제 현장에서는 상품 박스에 QR 코드를 부착하여 재고를 관리하며, 이를 통해 상품 식별, 위치 확인, 입출고 처리를 보다 빠르고 정확하게 수행할 수 있도록 설계했습니다.</b>
 
 - 일반 사용자는 상품 조회, 상품 등록 요청, 입출고 기록 조회, QR 스캔, CSV 다운로드 기능을 사용할 수 있습니다.
@@ -179,14 +179,45 @@ Database (MySQL)
 
 ## 📸 Preview
 
-#### 🏠 Dashboard (팀 목록 및 통계)
-- 사용자가 속한 팀 목록 조회
-- 개인 Task 통계 확인
+#### 🏠 Admin/reqeustProduct (관리자 페이지, 상품 등록 요청 목록 조회 및 승인/거절 페이지)
+- 사용자가 등록 요청한 리스트 조회
+- 상품 등록 승인 및 거절 ( 거절 시 사유 입력 )
 
-![dashboard](./assets/admin setwarehouse.png)
+![admin](./frontend/src/assets/adminrequest.png)
 
 ---
 
+
+#### 🏠 product/:productId (상품 상세 페이지)
+- 등록한 상품의 상세정보 조회
+- 상품의 입출고 기록 조회 및 입/출고 등록
+
+![product](./frontend/src/assets/deatailproduct.png)
+
+---
+
+#### 🏠 CSV (CSV 다운로드 페이지)
+- 전체 제품 목록 및 입출고기록 CSV 다운로드
+- 다운로드 파일 기록 조회
+
+![product](./frontend/src/assets/downcsv.png)
+
+---
+
+#### 🏠 requestproduct (내요청 확인 페이지)
+- 사용자 본인이 요청한 상품 등록 상태 조회
+- 상품 등록 거절 시, 거절 사유 확인
+
+![product](./frontend/src/assets/searchmyrequest.png)
+
+---
+
+
+#### 🏠 Scan (QR코드 스캔 페이지)
+- QR코드 스캔 기능
+- 카메라 기능 외 파일 업로드 또는 QR코드 직접 입력 가능
+
+![product](./frontend/src/assets/Scan.png)
 
 
 
