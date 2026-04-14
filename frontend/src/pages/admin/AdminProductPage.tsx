@@ -171,7 +171,7 @@ const AdminProductPage = () => {
                   </thead>
                   <tbody>
                     {filteredProducts.map((product) => (
-                      <tr key={product.id} className="cursor-pointer border-t border-slate-100 text-sm text-slate-700" onClick={() => navigate(`/product/${product.id}`)}>
+                      <tr key={product.id} className="cursor-pointer border-t border-slate-100 text-sm text-slate-700" >
                         <td className="px-6 py-4 font-semibold text-[#2F6FBB]">{product.name}</td>
                         <td className="px-6 py-4">{product.productCode}</td>
                         <td className="px-6 py-4">{product.locationName || '-'}</td>
