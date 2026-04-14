@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FiEdit2, FiPackage, FiPlus, FiSearch, FiTrash2 } from 'react-icons/fi';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
 import AdminProductFormModal from '../../components/admin/AdminProductFormModal';
 import { useCategories } from '../../hooks/useCategories';
 import { useCreateProduct } from '../../hooks/useCreateProduct';
@@ -20,8 +19,6 @@ const AdminProductPage = () => {
   const [keyword, setKeyword] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
-
-  const navigate = useNavigate();
 
   const { data, isLoading, isError, refetch } = useProducts({
     page: 1,
